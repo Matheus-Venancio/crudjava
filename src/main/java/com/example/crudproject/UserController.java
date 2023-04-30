@@ -3,6 +3,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -18,11 +21,28 @@ import org.springframework.web.server.ResponseStatusException;
 public class UserController {
 	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
+	private UserService userService;
 
+	
 	@PostMapping("/add")
+	
+	  public ResponseEntity<?> createUser(@RequestBody @Validated User user, BindingResult bindingResult){
+   	 User existingUser = userService.findByCpf(user.getCpf());
+   	    if (existingUser != null) {
+   	        bindingResult.rejectValue("cpf", "error.user", "CPF já cadastrado");
+   	    }
+   	    if (bindingResult.hasErrors()) {
+   	        return ResponseEntity.badRequest().body(bindingResult.getAllErrors());
+   	    }
+   	    User savedUser = userService.save(user);
+   	    return ResponseEntity.ok(savedUser);
+   }
+	/**
 	public User add(@RequestBody User usuario) {
 		return userRepository.save(usuario);
-	}
+	}**/
 	
 	@GetMapping("/all")
 	public List<User> listarUsuario() {
